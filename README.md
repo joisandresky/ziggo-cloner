@@ -1,6 +1,6 @@
 # Go Project Cloner
 
-This is a simple script to clone a go project from github written in Zig.
+This is a simple app to clone a go project from git repository written in Zig.
 
 ## Requirements
 
@@ -14,7 +14,7 @@ Just download the release binary from [github](https://github.com/joisandresky/z
 ## Usage
 
 ```bash
-ziggo-cloner --template [repo-url] --name [project-name-that-will-be-new-go-mod-name]
+ziggo-cloner --template [repo-url] --name [new-go-mod-name]
 ```
 
 ## How it Works
@@ -25,5 +25,5 @@ Basically it will do this:
 - Remove go.sum
 - Modify go.mod name
 - Recursively rename import paths into new go.mod name
-- Reinitialize Git
 - Run `go mod tidy`
+- Reinitialize Git
