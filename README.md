@@ -25,5 +25,5 @@ Basically it will do this:
 - Remove go.sum
 - Modify go.mod name
 - Recursively rename import paths into new go.mod name
-- Remove git remote origin
+- Reinitialize Git
 - Run `go mod tidy`

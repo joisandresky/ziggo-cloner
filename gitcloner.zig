@@ -37,9 +37,9 @@ pub const GitCloner = struct {
             try self.updateImports(old_name, self.new_mod);
         }
 
-        try self.removeGitRemoteOrigin();
-
         try self.runCommand(&[_][]const u8{ "go", "mod", "tidy" });
+
+        try self.reinitializeGit();
     }
 
     fn extractRepoName(self: *GitCloner, url: []const u8) ![]u8 {
@@ -167,7 +167,11 @@ pub const GitCloner = struct {
         try out_file.writeAll(new_content.items);
     }
 
-    fn removeGitRemoteOrigin(self: *GitCloner) !void {
-        try self.runCommand(&[_][]const u8{ "git", "remote", "rm", "origin" });
+    fn reinitializeGit(self: *GitCloner) !void {
+        std.fs.cwd().deleteTree(".git") catch |err| {
+            if (err != error.FileNotFound) return err;
+        };
+
+        try self.runCommand(&[_][]const u8{ "git", "init" });
     }
 };
