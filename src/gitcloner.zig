@@ -92,15 +92,6 @@ pub const GitCloner = struct {
         try out_file.writeAll(new_content.items);
     }
 
-    fn createGoMod(self: *GitCloner, mod_name: []const u8) !void {
-        const content = try std.fmt.allocPrint(self.allocator, "module {s}\n\ngo 1.21\n", .{mod_name});
-        defer self.allocator.free(content);
-
-        const file = try std.fs.cwd().createFile("go.mod", .{});
-        defer file.close();
-        try file.writeAll(content);
-    }
-
     fn getOldModName(self: *GitCloner, path: []const u8) !?[]u8 {
         const file = std.fs.cwd().openFile(path, .{}) catch |err| {
             if (err == error.FileNotFound) return null;
