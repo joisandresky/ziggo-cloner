@@ -30,9 +30,9 @@ pub fn main() !void {
         std.process.exit(1);
     }
 
-    var cloner = GitCloner.init(allocator, stdout.any(), template.?, new_mod_name.?);
+    var cloner = GitCloner.init(allocator, stdout.any());
 
-    try cloner.run();
+    try cloner.run(template.?, new_mod_name.?);
 
     try stdout.print("Project cloned and modified successfully!\n", .{});
 }

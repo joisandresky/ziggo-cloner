@@ -5,25 +5,26 @@ const ArrayList = std.ArrayList;
 pub const GitCloner = struct {
     allocator: Allocator,
     writer: std.io.AnyWriter,
-    template_url: []const u8,
-    new_mod: []const u8,
+    template_url: []const u8 = undefined,
+    new_mod: []const u8 = undefined,
 
-    pub fn init(allocator: Allocator, writer: std.io.AnyWriter, template_url: []const u8, new_mod: []const u8) GitCloner {
+    pub fn init(allocator: Allocator, writer: std.io.AnyWriter) GitCloner {
         return GitCloner{
             .allocator = allocator,
             .writer = writer,
-            .template_url = template_url,
-            .new_mod = new_mod,
         };
     }
 
-    pub fn run(self: *GitCloner) !void {
-        const repo_name = try self.extractRepoName(self.template_url);
-        defer self.allocator.free(repo_name);
+    pub fn run(self: *GitCloner, template_url: []const u8, new_mod: []const u8) !void {
+        self.template_url = template_url;
+        self.new_mod = new_mod;
 
-        try self.runCommand(&[_][]const u8{ "git", "clone", self.template_url, repo_name });
+        const new_folder_name = try self.getNewFolderName(self.new_mod);
+        defer self.allocator.free(new_folder_name);
 
-        try std.posix.chdir(repo_name);
+        try self.runCommand(&[_][]const u8{ "git", "clone", self.template_url, new_folder_name });
+
+        try std.posix.chdir(new_folder_name);
         defer std.posix.chdir("..") catch {};
 
         const old_mod_name = try self.getOldModName("go.mod");
@@ -42,13 +43,10 @@ pub const GitCloner = struct {
         try self.reinitializeGit();
     }
 
-    fn extractRepoName(self: *GitCloner, url: []const u8) ![]u8 {
-        const last_slash = std.mem.lastIndexOf(u8, url, "/") orelse return error.InvalidUrl;
-        var name = url[last_slash + 1 ..];
-        if (std.mem.endsWith(u8, name, ".git")) {
-            name = name[0 .. name.len - 4];
-        }
-        return try self.allocator.dupe(u8, name);
+    fn getNewFolderName(self: *GitCloner, new_mod_name: []const u8) ![]u8 {
+        const last_slash = std.mem.lastIndexOf(u8, new_mod_name, "/") orelse return try self.allocator.dupe(u8, new_mod_name);
+
+        return try self.allocator.dupe(u8, new_mod_name[last_slash + 1 ..]);
     }
 
     fn runCommand(self: *GitCloner, args: []const []const u8) !void {
